@@ -1,5 +1,5 @@
 # human-machine-adversarial
- Reference：A human-machine adversarial scoring framework for urban perception assessment using street-view images.
+ Reference：A human-machine adversarial scoring framework for urban perception assessment using street-view images.2019,IJGIS.
 # about
  StreetViewRatingApp was developed using Java/Weka/MySQL/tomcat/spring+springmvc+myBatis by eclipse. It can directly run on Windows and Linux operating systems.
 # contact
