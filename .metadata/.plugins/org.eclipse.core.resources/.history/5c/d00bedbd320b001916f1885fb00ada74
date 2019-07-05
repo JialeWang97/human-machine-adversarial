@@ -1,0 +1,141 @@
+package com.biggiser.service.impl;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.biggiser.beans.BaseScore;
+import com.biggiser.beans.Init;
+import com.biggiser.beans.LocalRandomForest;
+import com.biggiser.beans.LogBean;
+import com.biggiser.beans.UserRatingBean;
+import com.biggiser.mapper.UserMapper;
+import com.biggiser.service.IRatingService;
+
+import weka.core.Instances;
+import weka.core.SerializationHelper;
+
+@Service
+public class RatingServiceImpl implements IRatingService{	
+	@Resource
+    private UserMapper um;
+
+	@Override
+	public boolean RandomForestTraining(UserRatingBean userRating){
+		System.out.println("training-----");
+		int num=userRating.getScoredImg().size();
+		if(num<5){//张数不够
+			System.out.println(num);
+			System.out.println("traing not enough scored images---at least 50");
+			return false;	
+		}
+		
+		System.out.println("building trainging set----");
+		
+		Instances wealthyInstances = LocalRandomForest.BuildInstances(userRating, "wealthy");
+		Instances safelyInstances = LocalRandomForest.BuildInstances(userRating, "safely");
+		Instances livelyInstances = LocalRandomForest.BuildInstances(userRating, "lively");
+		Instances beautifulInstances = LocalRandomForest.BuildInstances(userRating, "beautiful");
+		Instances boringInstances = LocalRandomForest.BuildInstances(userRating, "boring");
+		Instances depressionInstances = LocalRandomForest.BuildInstances(userRating, "depression");
+		
+		//设置类别标签
+		wealthyInstances.setClassIndex(Init.featureDimension);
+		safelyInstances.setClassIndex(Init.featureDimension);
+		livelyInstances.setClassIndex(Init.featureDimension);
+		beautifulInstances.setClassIndex(Init.featureDimension);
+		boringInstances.setClassIndex(Init.featureDimension);
+		depressionInstances.setClassIndex(Init.featureDimension);
+		
+		System.out.println("building trainging set----end");
+		
+		System.out.println("trainging randomForest Model starting----");
+		try{
+			userRating.getWealthyForest().setOptions(weka.core.Utils.splitOptions("-I 50 -P 66"));
+			userRating.getSafelyForest().setOptions(weka.core.Utils.splitOptions("-I 50 -P 66"));
+			userRating.getLivelyForest().setOptions(weka.core.Utils.splitOptions("-I 50 -P 66"));
+			userRating.getBeautifulForest().setOptions(weka.core.Utils.splitOptions("-I 50 -P 66"));
+			userRating.getBoringForest().setOptions(weka.core.Utils.splitOptions("-I 50 -P 66"));
+			userRating.getDepressionForest().setOptions(weka.core.Utils.splitOptions("-I 50 -P 66"));
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+		try {
+			userRating.getWealthyForest().buildClassifier(wealthyInstances);
+			userRating.getSafelyForest().buildClassifier(safelyInstances);
+			userRating.getLivelyForest().buildClassifier(livelyInstances);
+			userRating.getBeautifulForest().buildClassifier(beautifulInstances);
+			userRating.getBoringForest().buildClassifier(boringInstances);
+			userRating.getDepressionForest().buildClassifier(depressionInstances);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("trainging randomForest Model ending----");
+		
+		System.out.println("randomForest Model Serialization----");
+		
+		//String basePath="F:\\myStudy\\graduateWork\\WuhanStreetview\\RFModels\\";
+		String basePath="/data/RFModels/";
+		try {
+			SerializationHelper.write(basePath+userRating.getId()+"_RFModel_wealthyForest", userRating.getWealthyForest());
+			SerializationHelper.write(basePath+userRating.getId()+"_RFModel_safelyForest", userRating.getSafelyForest());
+			SerializationHelper.write(basePath+userRating.getId()+"_RFModel_livelyForest", userRating.getLivelyForest());
+			SerializationHelper.write(basePath+userRating.getId()+"_RFModel_beautifulForest", userRating.getBeautifulForest());
+			SerializationHelper.write(basePath+userRating.getId()+"_RFModel_boringForest", userRating.getBoringForest());
+			SerializationHelper.write(basePath+userRating.getId()+"_RFModel_depressionForest", userRating.getDepressionForest());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("randomForest Model Serialization ending----");	
+		
+		userRating.setCurNum(0);
+		return true;
+	}
+	
+	@Override
+	public void RandomForestTesting(UserRatingBean userRating, int imgId) {
+		
+		System.out.println("building testing dataset-----");
+		Instances pwealthyData = LocalRandomForest.BuildInstances("wealthy",imgId);
+		Instances psafelyData = LocalRandomForest.BuildInstances("safely",imgId);
+		Instances plivelyData = LocalRandomForest.BuildInstances("lively",imgId);
+		Instances pbeautifulData = LocalRandomForest.BuildInstances("beautiful",imgId);
+		Instances pboringData = LocalRandomForest.BuildInstances("boring",imgId);
+		Instances pdepressionData = LocalRandomForest.BuildInstances("depression",imgId);
+		
+		pwealthyData.setClassIndex(Init.featureDimension);
+		psafelyData.setClassIndex(Init.featureDimension);
+		plivelyData.setClassIndex(Init.featureDimension);
+		pbeautifulData.setClassIndex(Init.featureDimension);
+		pboringData.setClassIndex(Init.featureDimension);
+		pdepressionData.setClassIndex(Init.featureDimension);
+		
+		System.out.println("building testing dataset end-----");
+		
+		System.out.println("testing dataset-----");
+		try {
+			userRating.setPwealthyValue(userRating.getWealthyForest().classifyInstance(pwealthyData.get(0)));
+			userRating.setPsafelyValue(userRating.getSafelyForest().classifyInstance(psafelyData.get(0)));
+			userRating.setPlivelyValue(userRating.getLivelyForest().classifyInstance(plivelyData.get(0)));
+			userRating.setPbeautifulValue(userRating.getBeautifulForest().classifyInstance(pbeautifulData.get(0)));
+			userRating.setPboringValue(userRating.getBoringForest().classifyInstance(pboringData.get(0)));
+			userRating.setPdepressionValue(userRating.getDepressionForest().classifyInstance(pdepressionData.get(0)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("testing dataset end-----");
+	}
+
+	@Override
+	public void AddScore(int userId,String imgName,BaseScore userScore,BaseScore RFPrediction) {
+		LogBean log=new LogBean(null,userId,imgName,userScore.getWealthyScore(),userScore.getSafelyScore(),userScore.getLivelyScore(),userScore.getBeautifulScore(),
+				userScore.getBoringScore(),userScore.getDepressionScore(),RFPrediction.getWealthyScore(),RFPrediction.getSafelyScore(),RFPrediction.getLivelyScore(),
+				RFPrediction.getBeautifulScore(),RFPrediction.getBoringScore(),RFPrediction.getDepressionScore());
+		try {
+			um.insertLog(log);
+		} catch (Exception e) {
+			System.out.println("insert log fail!");
+			e.printStackTrace();
+		}
+	}
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+		<item value="F:\Java\pdf资料\SSM"/>
+		<item value="F:\Java\pdf资料\wangban\chapter2"/>
+		<item value="F:\Java\pdf资料\BookStore"/>
+	</list>
+	<section name="SaveAsDialogSettings">
+		<item value="613" key="DIALOG_WIDTH"/>
+		<item value="1|Microsoft YaHei UI|9.0|0|WINDOWS|1|-15|0|0|0|400|0|0|0|1|0|0|0|0|Microsoft YaHei UI" key="DIALOG_FONT_NAME"/>
+		<item value="644" key="DIALOG_HEIGHT"/>
+		<item value="663" key="DIALOG_X_ORIGIN"/>
+		<item value="95" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>

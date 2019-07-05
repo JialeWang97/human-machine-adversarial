@@ -1,0 +1,33 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>StreetViewRatingApp_HPSCIL@wangjiale</title>
+</head>
+<body>
+	StreetViewRatingApp_HPSCIL@:${user.username}<br/>
+	<img src="/StreetViews/113.808473_30.748940_0_0.png"><br/>
+	<form action="<%=basePath%>rating" method="post">
+		Wealthy:
+		<input type="text" name="wealthy" /><br/> 
+		Safely:
+		<input type="text" name="safely" /><br/> 
+		Lively:
+		<input type="text" name="lively" /><br/> 
+		Beautiful:
+		<input type="text" name="beautiful" /><br/> 
+		Boring:
+		<input type="text" name="boring" /><br/> 
+		Depression:
+		<input type="text" name="depression" /><br/>
+	</form> 
+</body>
+</html>

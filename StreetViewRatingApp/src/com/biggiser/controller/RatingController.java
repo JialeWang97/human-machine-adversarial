@@ -1,0 +1,137 @@
+package com.biggiser.controller;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.biggiser.beans.BaseScore;
+import com.biggiser.beans.Init;
+import com.biggiser.beans.UserBean;
+import com.biggiser.beans.UserRatingBean;
+import com.biggiser.service.IRandomImgService;
+import com.biggiser.service.IRatingService;
+
+/**
+ * @author Jiale Wang, Yao Yao
+ * HPSCIL & LIESMARS
+ */
+
+@Controller
+public class RatingController {
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Resource
+	private IRatingService RatingServiceImpl;
+	
+	@Resource
+	private IRandomImgService RandomImgServiceImpl;
+	
+	@RequestMapping("/rating")
+	public ModelAndView rate(HttpServletRequest req, BaseScore score) {		
+		log.info(score);		
+		ModelAndView mv = new ModelAndView();
+		
+		HttpSession session=req.getSession();
+		UserRatingBean curUserScoredImg=(UserRatingBean)session.getAttribute("userScoredImg");	
+		int curNum = curUserScoredImg.getCurNum() + 1;//当前张数
+		System.out.println("userId "+curUserScoredImg.getId());
+		System.out.println("num "+curNum);
+		session.setAttribute("number", curUserScoredImg.getScoredImg().size()+1);
+		
+		BaseScore sc = new BaseScore(score.wealthyScore,score.safelyScore,score.livelyScore,
+				score.beautifulScore,score.boringScore,score.depressionScore,(String)session.getAttribute("filename"));
+		curUserScoredImg.getScoredImg().add(sc);
+		
+		String curImgUrl=(String) session.getAttribute("filename");
+		
+		int imgId=RandomImgServiceImpl.getRandomImg();
+		String imgUrl = Init.imgScores.get(imgId).fileName;
+		session.setAttribute("filename", imgUrl);//图片url
+		mv.addObject("imgUrl", imgUrl);				
+		
+		boolean isModelOK = (boolean) session.getAttribute("isModelOK");
+		
+		if(curNum>=50){//打分
+			boolean b = RatingServiceImpl.RandomForestTraining(curUserScoredImg);//进行训练
+			if(b==false){//张数不够
+				curUserScoredImg.setCurNum(curNum);
+				session.setAttribute("userScoredImg", curUserScoredImg);
+				mv.setViewName("rating");
+			}else{
+				//进行下一张预测之前，要把先前的预测值和用户的打分值存在数据库
+				BaseScore lastprediction=(BaseScore)session.getAttribute("prediction");
+				//判断之前模型训练好了没
+				if(isModelOK==true){//训练好了
+					int index = curImgUrl.lastIndexOf('.');
+					String urlKey = curImgUrl.substring(0, index);
+					int userId=((UserBean)session.getAttribute("user")).getId();
+					RatingServiceImpl.AddScore(userId,urlKey,score,lastprediction);//加进数据库
+				}
+				
+				//进行下一张预测
+				RatingServiceImpl.RandomForestTesting(curUserScoredImg,imgId);
+							
+				//给出参考值
+				session.setAttribute("prediction", new BaseScore(curUserScoredImg.getPwealthyValue(),curUserScoredImg.getPsafelyValue(),curUserScoredImg.getPlivelyValue(),
+						curUserScoredImg.getPbeautifulValue(),curUserScoredImg.getPboringValue(),curUserScoredImg.getPdepressionValue(),imgUrl));
+				
+				//已经把当前张数curNum置为0了
+				//curUserScoredImg.setCurNum(curNum);
+				session.setAttribute("userScoredImg", curUserScoredImg);
+				
+				session.setAttribute("isModelOK", true);
+				
+				mv.addObject("pwealthyValue", String.format("%.2f", curUserScoredImg.getPwealthyValue()));
+				mv.addObject("psafelyValue", String.format("%.2f", curUserScoredImg.getPsafelyValue()));
+				mv.addObject("plivelyValue", String.format("%.2f", curUserScoredImg.getPlivelyValue()));
+				mv.addObject("pbeautifulValue", String.format("%.2f", curUserScoredImg.getPbeautifulValue()));
+				mv.addObject("pboringValue", String.format("%.2f", curUserScoredImg.getPboringValue()));
+				mv.addObject("pdepressionValue", String.format("%.2f", curUserScoredImg.getPdepressionValue()));
+				mv.setViewName("rating");
+				
+			}
+		}else{
+			if(isModelOK==true){
+				//进行下一张预测之前，要把先前的预测值和用户的打分值存在数据库
+				BaseScore lastprediction=(BaseScore)session.getAttribute("prediction");
+				int index = curImgUrl.lastIndexOf('.');
+				String urlKey = curImgUrl.substring(0, index);
+				int userId=((UserBean)session.getAttribute("user")).getId();
+				RatingServiceImpl.AddScore(userId,urlKey,score,lastprediction);//加进数据库
+				
+				//进行下一张预测
+				RatingServiceImpl.RandomForestTesting(curUserScoredImg,imgId);
+							
+				//给出参考值
+				session.setAttribute("prediction", new BaseScore(curUserScoredImg.getPwealthyValue(),curUserScoredImg.getPsafelyValue(),curUserScoredImg.getPlivelyValue(),
+						curUserScoredImg.getPbeautifulValue(),curUserScoredImg.getPboringValue(),curUserScoredImg.getPdepressionValue(),imgUrl));
+				
+				//已经把当前张数curNum置为0了
+				//curUserScoredImg.setCurNum(curNum);
+				session.setAttribute("userScoredImg", curUserScoredImg);
+				
+				session.setAttribute("isModelOK", true);
+				
+				mv.addObject("pwealthyValue", String.format("%.2f", curUserScoredImg.getPwealthyValue()));
+				mv.addObject("psafelyValue", String.format("%.2f", curUserScoredImg.getPsafelyValue()));
+				mv.addObject("plivelyValue", String.format("%.2f", curUserScoredImg.getPlivelyValue()));
+				mv.addObject("pbeautifulValue", String.format("%.2f", curUserScoredImg.getPbeautifulValue()));
+				mv.addObject("pboringValue", String.format("%.2f", curUserScoredImg.getPboringValue()));
+				mv.addObject("pdepressionValue", String.format("%.2f", curUserScoredImg.getPdepressionValue()));
+			}
+			curUserScoredImg.setCurNum(curNum);
+			session.setAttribute("userScoredImg", curUserScoredImg);
+			mv.setViewName("rating");
+		}	
+		
+		int index = imgUrl.lastIndexOf('.');
+		String location = imgUrl.substring(0, index);
+		mv.addObject("location", location);
+		return mv;
+	}
+}

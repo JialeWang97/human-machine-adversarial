@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="java.util.Date"/>
+<fullyQualifiedTypeName name="com.biggiser.service.IRegisterService"/>
+<fullyQualifiedTypeName name="javax.servlet.http.HttpSession"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.UserRatingBean"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="weka.core.Attribute"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="weka.core.DenseInstance"/>
+<fullyQualifiedTypeName name="weka.core.Instance"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.RandomForest"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.LocalRandomForest"/>
+<fullyQualifiedTypeName name="weka.classifiers.trees.RandomForest"/>
+<fullyQualifiedTypeName name="weka.core.SerializationHelper"/>
+<fullyQualifiedTypeName name="weka.core.Instances"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.Init"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.UserBean"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.BaseScore"/>
+<fullyQualifiedTypeName name="com.biggiser.beans.LogBean"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
+</qualifiedTypeNameHistroy>
